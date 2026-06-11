@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Matcha for a Cause — Donation Tracker</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap');
+
+  :root {
+    --matcha:    #3a6b35;
+    --matcha-mid:#5a8f54;
+    --matcha-lt: #a8c9a3;
+    --cream:     #f6f2e8;
+    --card:      #ffffff;
+    --border:    #dde8da;
+    --text:      #1c2b1a;
+    --muted:     #7a9477;
+    --danger:    #c0392b;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--matcha);
+    color: #fff;
+    padding: 28px 24px 20px;
+    text-align: center;
+  }
+  header .eyebrow {
+    font-size: 11px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    opacity: .7;
+    margin-bottom: 6px;
+  }
+  header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(26px, 6vw, 38px);
+    line-height: 1.1;
+  }
+  header h1 span { color: var(--matcha-lt); }
+  header p.sub {
+    margin-top: 8px;
+    font-size: 13px;
+    opacity: .75;
+  }
+
+  /* ── SUMMARY CARDS ── */
+  .summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    padding: 20px 16px 0;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .summary-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 14px;
+    text-align: center;
+  }
+  .summary-card .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .summary-card .value {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(20px, 5vw, 28px);
+    color: var(--matcha);
+  }
+  .summary-card .value.donors { color: var(--matcha-mid); }
+
+  /* ── FORM ── */
+  .form-wrap {
+    max-width: 720px;
+    margin: 18px auto 0;
+    padding: 0 16px;
+  }
+  .form-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+  }
+  .form-card h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    margin-bottom: 14px;
+    color: var(--matcha);
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .form-grid .full { grid-column: 1 / -1; }
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: .8px;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+  input, select, textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 9px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--cream);
+    outline: none;
+    transition: border-color .2s;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--matcha-mid);
+    background: #fff;
+  }
+  textarea { resize: vertical; min-height: 64px; }
+
+  .btn-add {
+    margin-top: 14px;
+    width: 100%;
+    padding: 13px;
+    background: var(--matcha);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s, transform .1s;
+  }
+  .btn-add:hover { background: #2d5428; }
+  .btn-add:active { transform: scale(.98); }
+
+  /* ── TABLE ── */
+  .table-wrap {
+    max-width: 720px;
+    margin: 16px auto 32px;
+    padding: 0 16px;
+  }
+  .table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .table-header h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    color: var(--matcha);
+  }
+  .btn-export {
+    padding: 8px 14px;
+    background: transparent;
+    border: 1.5px solid var(--matcha);
+    color: var(--matcha);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s, color .2s;
+  }
+  .btn-export:hover { background: var(--matcha); color: #fff; }
+
+  .empty-state {
+    background: var(--card);
+    border: 1.5px dashed var(--matcha-lt);
+    border-radius: 14px;
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .empty-state .icon { font-size: 32px; margin-bottom: 8px; }
+
+  .donation-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .donation-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    animation: fadeIn .3s ease;
+  }
+  @keyframes fadeIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform:none; } }
+
+  .donation-index {
+    min-width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--matcha);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .donation-body { flex: 1; }
+  .donation-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .donor-name { font-weight: 600; font-size: 15px; }
+  .amount-badge {
+    background: var(--matcha);
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .donation-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 5px;
+  }
+  .meta-chip {
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2px 9px;
+  }
+  .donation-note {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #666;
+    font-style: italic;
+  }
+  .btn-delete {
+    background: none;
+    border: none;
+    color: var(--matcha-lt);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 6px;
+    transition: color .2s, background .2s;
+    flex-shrink: 0;
+  }
+  .btn-delete:hover { color: var(--danger); background: #fdecea; }
+
+  /* mobile */
+  @media (max-width: 480px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .form-grid .full { grid-column: 1; }
+    .summary { grid-template-columns: 1fr 1fr; }
+    .summary .summary-card:last-child { grid-column: 1 / -1; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="eyebrow">Good Morning Lads · GML for a Cause</p>
+  <h1>Matcha for a <span>Cause</span> 🍵</h1>
+  <p class="sub">Earthquake Relief · Gensan-Sarangani</p>
+</header>
+
+<!-- Summary -->
+<div class="summary">
+  <div class="summary-card">
+    <div class="label">Total Raised</div>
+    <div class="value" id="total">₱0</div>
+  </div>
+  <div class="summary-card">
+    <div class="label">Donors</div>
+    <div class="value donors" id="donor-count">0</div>
+  </div>
+  <div class="summary-card">
+    <div class="label">Latest Donation</div>
+    <div class="value" id="latest" style="font-size:14px;color:var(--muted)">—</div>
+  </div>
+</div>
+
+<!-- Form -->
+<div class="form-wrap">
+  <div class="form-card">
+    <h2>Add Donation</h2>
+    <div class="form-grid">
+      <div>
+        <label for="donor-name">Donor Name</label>
+        <input type="text" id="donor-name" placeholder="e.g. Maria Santos" />
+      </div>
+      <div>
+        <label for="amount">Amount (₱)</label>
+        <input type="number" id="amount" placeholder="e.g. 500" min="0" />
+      </div>
+      <div>
+        <label for="method">Payment Method</label>
+        <select id="method">
+          <option value="">— Select —</option>
+          <option>GCash</option>
+          <option>Cash</option>
+          <option>Bank Transfer</option>
+          <option>Matcha Sale (50%)</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div>
+        <label for="datetime">Date & Time</label>
+        <input type="datetime-local" id="datetime" />
+      </div>
+      <div class="full">
+        <label for="note">Notes / Message</label>
+        <textarea id="note" placeholder="Optional message from donor..."></textarea>
+      </div>
+    </div>
+    <button class="btn-add" onclick="addDonation()">+ Add Donation</button>
+  </div>
+</div>
+
+<!-- Donation List -->
+<div class="table-wrap">
+  <div class="table-header">
+    <h2>Donations</h2>
+    <button class="btn-export" onclick="exportCSV()">⬇ Export CSV</button>
+  </div>
+  <div id="list-container">
+    <div class="empty-state">
+      <div class="icon">🍃</div>
+      No donations yet. Add the first one above!
+    </div>
+  </div>
+</div>
+
+<script>
+  // Pre-fill datetime to now
+  const dtInput = document.getElementById('datetime');
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  dtInput.value = now.toISOString().slice(0,16);
+
+  let donations = JSON.parse(localStorage.getItem('gml-matcha-donations') || '[]');
+
+  function save() {
+    localStorage.setItem('gml-matcha-donations', JSON.stringify(donations));
+  }
+
+  function fmt(n) {
+    return '₱' + Number(n).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function fmtDate(dt) {
+    if (!dt) return '—';
+    const d = new Date(dt);
+    return d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })
+      + ' · ' + d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function updateSummary() {
+    const total = donations.reduce((s, d) => s + Number(d.amount), 0);
+    document.getElementById('total').textContent = fmt(total);
+    document.getElementById('donor-count').textContent = donations.length;
+    if (donations.length > 0) {
+      const last = donations[donations.length - 1];
+      document.getElementById('latest').textContent = fmt(last.amount);
+    } else {
+      document.getElementById('latest').textContent = '—';
+    }
+  }
+
+  function render() {
+    const container = document.getElementById('list-container');
+    if (donations.length === 0) {
+      container.innerHTML = `<div class="empty-state"><div class="icon">🍃</div>No donations yet. Add the first one above!</div>`;
+      updateSummary();
+      return;
+    }
+    const cards = [...donations].reverse().map((d, ri) => {
+      const i = donations.length - ri;
+      return `
+        <div class="donation-card">
+          <div class="donation-index">${i}</div>
+          <div class="donation-body">
+            <div class="donation-top">
+              <span class="donor-name">${d.name || 'Anonymous'}</span>
+              <span class="amount-badge">${fmt(d.amount)}</span>
+            </div>
+            <div class="donation-meta">
+              ${d.method ? `<span class="meta-chip">💳 ${d.method}</span>` : ''}
+              ${d.datetime ? `<span class="meta-chip">🕐 ${fmtDate(d.datetime)}</span>` : ''}
+            </div>
+            ${d.note ? `<div class="donation-note">"${d.note}"</div>` : ''}
+          </div>
+          <button class="btn-delete" onclick="deleteDonation(${donations.length - 1 - ri})" title="Remove">✕</button>
+        </div>`;
+    }).join('');
+    container.innerHTML = `<div class="donation-list">${cards}</div>`;
+    updateSummary();
+  }
+
+  function addDonation() {
+    const name = document.getElementById('donor-name').value.trim();
+    const amount = document.getElementById('amount').value;
+    const method = document.getElementById('method').value;
+    const datetime = document.getElementById('datetime').value;
+    const note = document.getElementById('note').value.trim();
+
+    if (!amount || isNaN(amount) || Number(amount) <= 0) {
+      alert('Please enter a valid donation amount.');
+      return;
+    }
+
+    donations.push({ name: name || 'Anonymous', amount: Number(amount), method, datetime, note });
+    save();
+    render();
+
+    // Reset
+    document.getElementById('donor-name').value = '';
+    document.getElementById('amount').value = '';
+    document.getElementById('method').value = '';
+    document.getElementById('note').value = '';
+    const n = new Date();
+    n.setMinutes(n.getMinutes() - n.getTimezoneOffset());
+    dtInput.value = n.toISOString().slice(0,16);
+  }
+
+  function deleteDonation(idx) {
+    if (!confirm('Remove this donation?')) return;
+    donations.splice(idx, 1);
+    save();
+    render();
+  }
+
+  function exportCSV() {
+    if (donations.length === 0) { alert('No donations to export yet.'); return; }
+    const headers = ['#', 'Donor Name', 'Amount (PHP)', 'Payment Method', 'Date & Time', 'Notes'];
+    const rows = donations.map((d, i) => [
+      i + 1,
+      `"${d.name}"`,
+      d.amount,
+      `"${d.method}"`,
+      `"${fmtDate(d.datetime)}"`,
+      `"${d.note}"`
+    ]);
+    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'matcha-for-a-cause-donations.csv';
+    a.click();
+  }
+
+  render();
+</script>
+</body>
+</html>
